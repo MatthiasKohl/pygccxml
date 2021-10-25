@@ -109,10 +109,11 @@ class source_reader_t(object):
 
         cmd = self.__create_command_line_common()
 
+        # No additional clang options, let user control these
         # Clang option: -c Only run preprocess, compile, and assemble steps
-        cmd.append("-c")
+        # cmd.append("-c")
         # Clang option: make sure clang knows we want to parse c++
-        cmd.append("-x c++")
+        # cmd.append("-x c++")
 
         # Always require a compiler path at this point
         if self.__config.compiler_path is None:
