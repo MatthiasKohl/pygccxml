@@ -4,6 +4,8 @@
 # See http://www.boost.org/LICENSE_1_0.txt
 
 from pygccxml import declarations
+from pygccxml.declarations import comment as pygccxml_comment
+from pygccxml.declarations import location_t as pygccxml_location_t
 from .. import utils
 
 
@@ -45,6 +47,12 @@ class linker_t(
                 inst.location is not None and \
                 inst.location.file_name != '':
             inst.location.file_name = self.__files[inst.location.file_name]
+            # handle comments of declarations the same way
+            c = inst.comment
+            if (isinstance(c, pygccxml_comment.comment_t) and \
+                    isinstance(c.location, pygccxml_location_t) and \
+                    c.location.file_name != ''):
+                c.location.file_name = self.__files[c.location.file_name]
 
     def __link_type(self, type_id):
         if type_id is None:
