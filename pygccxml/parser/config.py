@@ -469,8 +469,8 @@ def create_compiler_path(xml_generator, compiler_path):
             if compiler_path == '':
                 compiler_path = __get_first_compiler_in_path('which', 'c++')
 
-        if compiler_path == "":
-            compiler_path = None
+    if compiler_path == "":
+        compiler_path = None
 
     return compiler_path
 

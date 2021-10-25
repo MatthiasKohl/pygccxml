@@ -116,13 +116,9 @@ class source_reader_t(object):
 
         # Always require a compiler path at this point
         if self.__config.compiler_path is None:
-            raise(RuntimeError(
-                "Please pass the compiler_path as argument to " +
-                "your xml_generator_configuration_t(), or add it to your " +
-                "pygccxml configuration file."))
-
+            self.logger.debug("Using internal CastXML compiler for predefines")
         # Platform specific options
-        if platform.system() == 'Windows':
+        elif platform.system() == 'Windows':
             compilers = ("mingw", "g++", "gcc")
             compiler_path = self.__config.compiler_path.lower()
             if any(compiler in compiler_path for compiler in compilers):
