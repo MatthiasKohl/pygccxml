@@ -12,6 +12,8 @@ from . import cpptypes
 from . import namespace
 from . import calldef
 from . import calldef_members
+from . import function_template
+from . import template_parameter
 from .. import utils
 
 
@@ -395,6 +397,84 @@ class operator_matcher_t(calldef_matcher_t):
             msg = []
         if self.symbol is not None:
             msg.append('(symbol==%s)' % str(self.symbol))
+        if not msg:
+            msg.append('any')
+        return ' and '.join(msg)
+
+
+class function_template_matcher_t(calldef_matcher_t):
+    
+    """
+    Instance of this class will match function templates by next criteria:
+        * :class:`calldef_matcher_t` criteria
+        * template parameters
+            * parameter kind (typename/template/non-type) and
+              decl type (for non-type parameters)
+    """
+
+    def __init__(
+            self,
+            name=None,
+            return_type=None,
+            arg_types=None,
+            decl_type=None,
+            header_dir=None,
+            header_file=None,
+            template_param_kinds=None):
+        """
+        :param template_param_kinds: list of tuple (template_param_kind_t, type)
+                                     type can be string or :class:`type_t`.
+                                     If an element is `None`, it will not be
+                                     used for matching
+        :type template_param_kinds: list
+        """
+        if decl_type is None:
+            decl_type = function_template.function_template_t
+        calldef_matcher_t.__init__(
+            self,
+            name=name,
+            return_type=return_type,
+            arg_types=arg_types,
+            decl_type=decl_type,
+            header_dir=header_dir,
+            header_file=header_file)
+        self.template_param_kinds = template_param_kinds
+
+    def __call__(self, decl):
+        if not super(function_template_matcher_t, self).__call__(decl):
+            return False
+        if len(self.template_param_kinds) != len(decl.template_params):
+            return False
+        for x, t_param in zip(self.template_param_kinds, decl.template_params):
+            if x is None:
+                continue
+            kind, type_or_str = x
+            if kind != t_param.kind:
+                return False
+            if kind != template_parameter.template_param_kind_t.NON_TYPE:
+                continue
+            if isinstance(type_or_str, cpptypes.type_t) and \
+                    type_or_str != t_param.decl_type:
+                return False
+            if type_or_str != t_param.decl_type.decl_string:
+                return False
+        return True
+
+    @staticmethod
+    def _match_str(match_kind):
+        if match_kind is None:
+            return 'None'
+        kind, type_or_str = match_kind
+        if kind != template_parameter.template_param_kind_t.NON_TYPE:
+            return '(kind==%s)' % str(kind)
+        return '(kind==non-type, type==%s)' % str(type_or_str)
+
+    def __str__(self):
+        msg = [super(function_template_matcher_t, self).__str__()]
+        if msg == ['any']:
+            msg = []
+        if self.template_param_kinds:
+            msg.extend(map(self._match_str, self.template_param_kinds))
         if not msg:
             msg.append('any')
         return ' and '.join(msg)

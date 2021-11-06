@@ -55,6 +55,8 @@ XML_AN_RETURNS = "returns"
 XML_AN_SIZE = "size"
 XML_AN_STATIC = "static"
 XML_AN_THROW = "throw"
+XML_AN_TEMPLATE_TEMPLATE = "template_template"
+XML_AN_TEMPLATE_TYPE = "template_type"
 XML_AN_TYPE = "type"
 XML_AN_VIRTUAL = "virtual"
 XML_AN_VOLATILE = "volatile"
@@ -72,6 +74,7 @@ XML_NN_ENUMERATION_VALUE = "EnumValue"
 XML_NN_FIELD = "Field"
 XML_NN_FILE = "File"
 XML_NN_FUNCTION = "Function"
+XML_NN_FUNCTION_TEMPLATE = "FunctionTemplate"
 XML_NN_FUNCTION_TYPE = "FunctionType"
 XML_NN_FUNDAMENTAL_TYPE = "FundamentalType"
 XML_NN_FREE_OPERATOR = "OperatorFunction"
@@ -87,6 +90,9 @@ XML_NN_REFERENCE_TYPE = "ReferenceType"
 XML_NN_ELABORATED_TYPE = "ElaboratedType"
 XML_NN_ROOT = "GCC_XML"
 XML_NN_STRUCT = "Struct"
+XML_NN_TEMPLATE_PARAM = "TemplateParameter"
+XML_NN_TEMPLATE_TYPE_PARAM = "TemplateTypeParm"
+XML_NN_TEMPLATE_TEMPLATE_PARAM = "TemplateTemplateParm"
 XML_NN_TYPEDEF = "Typedef"
 XML_NN_UNION = "Union"
 XML_NN_VARIABLE = "Variable"
@@ -125,12 +131,16 @@ class scanner_t(xml.sax.handler.ContentHandler):
             XML_NN_CONSTRUCTOR: self.__read_constructor,
             XML_NN_DESTRUCTOR: self.__read_destructor,
             XML_NN_FUNCTION: self.__read_function,
+            XML_NN_FUNCTION_TEMPLATE: self.__read_function_template,
             XML_NN_FREE_OPERATOR: self.__read_free_operator,
             XML_NN_MEMBER_OPERATOR: self.__read_member_operator,
             XML_NN_METHOD: self.__read_method,
             XML_NN_GCC_XML: self.__read_version,
             XML_NN_CASTXML: self.__read_version,
-            XML_NN_ELLIPSIS: self.__read_ellipsis}
+            XML_NN_ELLIPSIS: self.__read_ellipsis,
+            XML_NN_TEMPLATE_PARAM: self.__read_template_param,
+            XML_NN_TEMPLATE_TYPE_PARAM: self.__read_template_type_param,
+            XML_NN_TEMPLATE_TEMPLATE_PARAM: self.__read_template_template_param}
         self.deep_declarations = [
             XML_NN_CASTING_OPERATOR,
             XML_NN_CONSTRUCTOR,
@@ -139,6 +149,7 @@ class scanner_t(xml.sax.handler.ContentHandler):
             XML_NN_FILE,
             XML_NN_COMMENT,
             XML_NN_FUNCTION,
+            XML_NN_FUNCTION_TEMPLATE,
             XML_NN_FREE_OPERATOR,
             XML_NN_MEMBER_OPERATOR,
             XML_NN_METHOD,
@@ -554,6 +565,23 @@ class scanner_t(xml.sax.handler.ContentHandler):
             self.__read_attributes(argument, attrs)
             self.__inst.arguments.append(argument)
 
+    def __read_template_param(self, attrs):
+        param = declarations.template_param_t()
+        param.name = attrs.get(
+            XML_AN_NAME, 'tparam%d' % len(self.__inst.template_params))
+        param.decl_type = attrs.get(XML_AN_TYPE)
+        # template type parameters become their own decl_type
+        # this simplifies usage of decl_type
+        if attrs.get(XML_AN_TEMPLATE_TEMPLATE, False):
+            param.kind = declarations.template_param_kind_t.TEMPLATE
+            param.decl_type = declarations.template_type_t(param.name)
+        elif attrs.get(XML_AN_TEMPLATE_TYPE, False):
+            param.kind = declarations.template_param_kind_t.TYPE
+            param.decl_type = declarations.template_type_t(param.name)
+        else:
+            param.kind = declarations.template_param_kind_t.NON_TYPE
+        self.__inst.template_params.append(param)
+
     def __read_ellipsis(self, attrs):
         if isinstance(self.__inst, declarations.calldef_type_t):
             self.__inst.arguments_types.append('...')
@@ -692,6 +720,11 @@ class scanner_t(xml.sax.handler.ContentHandler):
         self.__read_calldef(gfunction, attrs, True)
         return gfunction
 
+    def __read_function_template(self, attrs):
+        ftemplate = self.__decl_factory.create_function_template()
+        self.__read_calldef(ftemplate, attrs, True)
+        return ftemplate
+
     def __read_method(self, attrs):
         mfunction = self.__decl_factory.create_member_function()
         self.__read_member_function(mfunction, attrs, True)
@@ -724,6 +757,13 @@ class scanner_t(xml.sax.handler.ContentHandler):
             utils.loggers.cxx_parser, gccxml_cvs_revision, castxml_format)
         utils.xml_output_version = gccxml_cvs_revision
         self.__xml_generator_from_xml_file = xml_generator
+
+    def __read_template_type_param(self, attrs):
+        return declarations.template_type_t(attrs.get(XML_AN_NAME))
+
+    def __read_template_template_param(self, attrs):
+        # for now, same as template type
+        return declarations.template_type_t(attrs.get(XML_AN_NAME))
 
     @staticmethod
     def __update_operator_name(operator):

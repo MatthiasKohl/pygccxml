@@ -31,6 +31,7 @@ from .class_declaration import class_types
 from .cpptypes import type_t
 from .cpptypes import dummy_type_t
 from .cpptypes import unknown_t
+from .cpptypes import template_type_t
 from .cpptypes import ellipsis_t
 from .cpptypes import fundamental_t
 from .cpptypes import void_t
@@ -113,8 +114,13 @@ from .free_calldef import free_calldef_t
 from .free_calldef import free_function_t
 from .free_calldef import free_operator_t
 
+from .function_template import function_template_t
+
 from .decl_visitor import decl_visitor_t
 from .type_visitor import type_visitor_t
+
+from .template_parameter import template_param_kind_t
+from .template_parameter import template_param_t
 
 from .type_traits import decompose_type
 from .type_traits import decompose_class
@@ -236,6 +242,7 @@ from .declarations_matchers import calldef_matcher_t
 from .declarations_matchers import namespace_matcher_t
 from .declarations_matchers import variable_matcher_t
 from .declarations_matchers import operator_matcher_t
+from .declarations_matchers import function_template_matcher_t
 
 from .mdecl_wrapper import mdecl_wrapper_t
 
@@ -277,6 +284,8 @@ custom_matcher = custom_matcher_t
 """see :class:`custom_matcher_t` for documentation"""
 virtuality_type_matcher = virtuality_type_matcher_t
 """see :class:`virtuality_type_matcher_t` for documentation"""
+function_template_matcher = function_template_matcher_t
+"""see :class:`function_template_matcher_t` for documentation"""
 
 scopedef.scopedef_t._impl_all_decl_types = [
     scopedef.scopedef_t,
@@ -296,7 +305,8 @@ scopedef.scopedef_t._impl_all_decl_types = [
     member_operator_t,
     casting_operator_t,
     free_function_t,
-    free_operator_t]
+    free_operator_t,
+    function_template_t]
 
 __impl_matchers = scopedef.scopedef_t._impl_matchers
 __impl_decl_types = scopedef.scopedef_t._impl_decl_types
@@ -342,3 +352,6 @@ __impl_decl_types[namespace_t.free_function] = free_function_t
 
 __impl_matchers[namespace_t.free_operator] = operator_matcher_t
 __impl_decl_types[namespace_t.free_operator] = free_operator_t
+
+__impl_matchers[namespace_t.function_template] = function_template_matcher_t
+__impl_decl_types[namespace_t.function_template] = function_template_t

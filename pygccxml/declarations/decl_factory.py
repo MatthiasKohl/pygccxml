@@ -15,6 +15,7 @@ from .calldef_members import casting_operator_t
 from .comment import comment_t
 from .free_calldef import free_function_t
 from .free_calldef import free_operator_t
+from .function_template import function_template_t
 from .enumeration import enumeration_t
 from .namespace import namespace_t
 from .class_declaration import class_t
@@ -60,6 +61,11 @@ class decl_factory_t(object):
         """creates instance of class that describes free function
         declaration"""
         return free_function_t(*arguments, **keywords)
+
+    def create_function_template(self, *arguments, **keywords):
+        """creates instance of class that describes function template
+        declaration"""
+        return function_template_t(*arguments, **keywords)
 
     def create_free_operator(self, *arguments, **keywords):
         """creates instance of class that describes free operator

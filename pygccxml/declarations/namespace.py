@@ -261,6 +261,68 @@ class namespace_t(scopedef.scopedef_t):
                 allow_empty=allow_empty)
         )
 
+    def function_template(
+            self,
+            name=None,
+            function=None,
+            return_type=None,
+            arg_types=None,
+            header_dir=None,
+            header_file=None,
+            recursive=None,
+            template_param_kinds=None):
+        """
+        Returns reference to function template declaration that matches
+        a defined criteria.
+
+        """
+
+        return (
+            self._find_single(
+                scopedef.scopedef_t._impl_matchers[namespace_t.function_template],
+                name=name,
+                function=function,
+                decl_type=self._impl_decl_types[namespace_t.function_template],
+                return_type=return_type,
+                arg_types=arg_types,
+                header_dir=header_dir,
+                header_file=header_file,
+                recursive=recursive,
+                template_param_types=template_param_kinds)
+        )
+
+    def function_templates(
+            self,
+            name=None,
+            function=None,
+            return_type=None,
+            arg_types=None,
+            header_dir=None,
+            header_file=None,
+            recursive=None,
+            allow_empty=None,
+            template_param_kinds=None):
+        """
+        Returns a set of function template declarations that match
+        a defined criteria.
+
+        """
+
+        return (
+            self._find_multiple(
+                scopedef.scopedef_t._impl_matchers[namespace_t.function_template],
+                name=name,
+                function=function,
+                decl_type=self._impl_decl_types[namespace_t.function_template],
+                return_type=return_type,
+                arg_types=arg_types,
+                header_dir=header_dir,
+                header_file=header_file,
+                recursive=recursive,
+                allow_empty=allow_empty,
+                template_param_types=template_param_kinds)
+        )
+
     def i_depend_on_them(self, recursive=True):
         self._warn_deprecated()
         answer = []

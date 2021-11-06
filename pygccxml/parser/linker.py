@@ -103,6 +103,10 @@ class linker_t(
                 except KeyError:
                     self.__inst.exceptions[i] = self.__link_type(exception)
 
+    def __link_template_parameters(self):
+        for t_param in self.__inst.template_params:
+            t_param.decl_type = self.__link_type(t_param.decl_type)
+
     def visit_member_function(self):
         self.__link_calldef()
 
@@ -127,6 +131,10 @@ class linker_t(
         # self.__inst._name = 'operator ' + self.__inst.return_type.decl_string
 
     def visit_free_function(self):
+        self.__link_calldef()
+
+    def visit_function_template(self):
+        self.__link_template_parameters()
         self.__link_calldef()
 
     def visit_free_operator(self):
@@ -289,6 +297,9 @@ class linker_t(
             self.__inst = original_inst
         else:
             self.__link_compound_type()
+
+    def visit_template_type(self):
+        pass
 
     def visit_reference(self):
         self.__link_compound_type()

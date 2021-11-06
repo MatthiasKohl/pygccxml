@@ -106,6 +106,30 @@ class unknown_t(type_t):
         return self
 
 
+class template_type_t(type_t):
+    """
+    type, that represents "typename T" or "class T" in template parameter list
+    """
+
+    def __init__(self, name=None):
+        type_t.__init__(self)
+        self._name = name
+
+    def build_decl_string(self, with_defaults=True):
+        return self.name or '?template type?'
+
+    def _clone_impl(self):
+        return self
+
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, name):
+        self._name = name
+
+
 class ellipsis_t(type_t):
 
     """type, that represents "..." in function definition"""
