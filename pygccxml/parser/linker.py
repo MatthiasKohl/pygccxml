@@ -105,6 +105,13 @@ class linker_t(
 
     def __link_template_parameters(self):
         for t_param in self.__inst.template_params:
+            type_id = t_param.decl_type
+            if type_id in self.__types and isinstance(
+                    self.__types[type_id], declarations.template_type_t):
+                # if we have a template type parameter, update its name etc.
+                self.__types[type_id].name =\
+                    self.__types[type_id].name or t_param.name
+            # at this point, we just link the type as usual
             t_param.decl_type = self.__link_type(t_param.decl_type)
 
     def visit_member_function(self):

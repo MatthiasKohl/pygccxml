@@ -590,7 +590,8 @@ class project_reader_t(object):
             assert isinstance(
                 cpptype,
                 (pygccxml.declarations.unknown_t,
-                 pygccxml.declarations.ellipsis_t))
+                 pygccxml.declarations.ellipsis_t,
+                 pygccxml.declarations.template_type_t))
             return []
         types = []
         for decl in pygccxml.declarations.make_flatten(namespaces):

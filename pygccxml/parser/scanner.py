@@ -91,8 +91,7 @@ XML_NN_ELABORATED_TYPE = "ElaboratedType"
 XML_NN_ROOT = "GCC_XML"
 XML_NN_STRUCT = "Struct"
 XML_NN_TEMPLATE_PARAM = "TemplateParameter"
-XML_NN_TEMPLATE_TYPE_PARAM = "TemplateTypeParm"
-XML_NN_TEMPLATE_TEMPLATE_PARAM = "TemplateTemplateParm"
+XML_NN_TEMPLATE_TYPE_PARAM = "TemplateParameterType"
 XML_NN_TYPEDEF = "Typedef"
 XML_NN_UNION = "Union"
 XML_NN_VARIABLE = "Variable"
@@ -139,8 +138,7 @@ class scanner_t(xml.sax.handler.ContentHandler):
             XML_NN_CASTXML: self.__read_version,
             XML_NN_ELLIPSIS: self.__read_ellipsis,
             XML_NN_TEMPLATE_PARAM: self.__read_template_param,
-            XML_NN_TEMPLATE_TYPE_PARAM: self.__read_template_type_param,
-            XML_NN_TEMPLATE_TEMPLATE_PARAM: self.__read_template_template_param}
+            XML_NN_TEMPLATE_TYPE_PARAM: self.__read_template_type_param}
         self.deep_declarations = [
             XML_NN_CASTING_OPERATOR,
             XML_NN_CONSTRUCTOR,
@@ -567,17 +565,12 @@ class scanner_t(xml.sax.handler.ContentHandler):
 
     def __read_template_param(self, attrs):
         param = declarations.template_param_t()
-        param.name = attrs.get(
-            XML_AN_NAME, 'tparam%d' % len(self.__inst.template_params))
+        param.name = attrs[XML_AN_NAME]
         param.decl_type = attrs.get(XML_AN_TYPE)
-        # template type parameters become their own decl_type
-        # this simplifies usage of decl_type
         if attrs.get(XML_AN_TEMPLATE_TEMPLATE, False):
             param.kind = declarations.template_param_kind_t.TEMPLATE
-            param.decl_type = declarations.template_type_t(param.name)
         elif attrs.get(XML_AN_TEMPLATE_TYPE, False):
             param.kind = declarations.template_param_kind_t.TYPE
-            param.decl_type = declarations.template_type_t(param.name)
         else:
             param.kind = declarations.template_param_kind_t.NON_TYPE
         self.__inst.template_params.append(param)
@@ -759,10 +752,6 @@ class scanner_t(xml.sax.handler.ContentHandler):
         self.__xml_generator_from_xml_file = xml_generator
 
     def __read_template_type_param(self, attrs):
-        return declarations.template_type_t(attrs.get(XML_AN_NAME))
-
-    def __read_template_template_param(self, attrs):
-        # for now, same as template type
         return declarations.template_type_t(attrs.get(XML_AN_NAME))
 
     @staticmethod
