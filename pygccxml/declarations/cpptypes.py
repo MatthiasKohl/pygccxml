@@ -116,7 +116,9 @@ class template_type_t(type_t):
         self._name = name
 
     def build_decl_string(self, with_defaults=True):
-        return self.name or '?template type?'
+        if self.name:
+            return 'typename ' + self.name
+        return 'typename ?unknown?'
 
     def _clone_impl(self):
         return self
@@ -160,6 +162,14 @@ class fundamental_t(type_t):
 
     def _clone_impl(self):
         return self
+
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, name):
+        self._name = name
 
 
 class java_fundamental_t(fundamental_t):
