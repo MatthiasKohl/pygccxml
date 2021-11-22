@@ -476,9 +476,11 @@ class project_reader_t(object):
                     leaved_base.derived[index].related_class = \
                         leaved_derived_for_base_info.related_class
             for derived_info in class_.derived:
-                leaved_derived = leaved_classes[
-                    self._create_key(
-                        derived_info.related_class)]
+                derived_key = self._create_key(derived_info.related_class)
+                if derived_key not in leaved_classes:
+                    # this may happen in rare cases (cub)
+                    continue
+                leaved_derived = leaved_classes[derived_key]
                 # treating derived class hierarchy of leaved_class
                 leaved_derived_info = pygccxml.declarations.hierarchy_info_t(
                     related_class=leaved_derived, access=derived_info.access)
@@ -563,7 +565,9 @@ class project_reader_t(object):
                         "    1. There are different preprocessor " +
                         "definitions applied on same file during compilation"))
                     msg.append("    2. Bug in pygccxml.")
-                    raise Exception(os.linesep.join(msg))
+                    # this can happen in some cases (cub)
+                    # raise Exception(os.linesep.join(msg))
+                    self.logger.debug(os.linesep.join(msg))
             elif isinstance(
                     decl_wrapper_type.declaration,
                     pygccxml.declarations.class_declaration_t):
