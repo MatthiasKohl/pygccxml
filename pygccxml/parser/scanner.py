@@ -177,8 +177,6 @@ class scanner_t(xml.sax.handler.ContentHandler):
         self.__inst = None
         # mapping from id to members
         self.__members = {}
-        # mapping from id to parent
-        self.__parents = {}
 
         self.__mangled_suffix = ' *INTERNAL* '
         self.__mangled_suffix_len = len(self.__mangled_suffix)
@@ -253,11 +251,6 @@ class scanner_t(xml.sax.handler.ContentHandler):
         members_mapping = {}
         for gccxml_id, members in self.__members.items():
             decl = self.__declarations.get(gccxml_id)
-            if isinstance(decl, declarations.calldef_t):
-                # in rare cases, functions can have declarations inside them
-                if gccxml_id in self.__parents:
-                    gccxml_id = self.__parents[gccxml_id]
-                    decl = self.__declarations.get(gccxml_id)
             if not decl or not isinstance(decl, declarations.scopedef_t):
                 continue
             members_mapping[id(decl)] = members
@@ -380,9 +373,7 @@ class scanner_t(xml.sax.handler.ContentHandler):
             return
         if parent not in self.__members:
             self.__members[parent] = []
-        element_id = attrs[XML_AN_ID]
-        self.__members[parent].append(element_id)
-        self.__parents[element_id] = parent
+        self.__members[parent].append(attrs[XML_AN_ID])
 
     @staticmethod
     def __read_members(decl, attrs):
@@ -574,7 +565,7 @@ class scanner_t(xml.sax.handler.ContentHandler):
 
     def __read_template_param(self, attrs):
         param = declarations.template_param_t()
-        param.name = attrs.get(XML_AN_NAME, '')
+        param.name = attrs[XML_AN_NAME]
         param.decl_type = attrs.get(XML_AN_TYPE)
         if attrs.get(XML_AN_TEMPLATE_TEMPLATE, False):
             param.kind = declarations.template_param_kind_t.TEMPLATE
