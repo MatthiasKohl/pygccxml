@@ -251,7 +251,17 @@ class scanner_t(xml.sax.handler.ContentHandler):
         members_mapping = {}
         for gccxml_id, members in self.__members.items():
             decl = self.__declarations.get(gccxml_id)
-            if not decl or not isinstance(decl, declarations.scopedef_t):
+            if not decl:
+                continue
+            if not isinstance(decl, declarations.scopedef_t):
+                # remove class declarations that are members of non-scopedef
+                # declarations. This will confuse linker/joiner otherwise
+                for member in members:
+                    if member not in self.__declarations:
+                        continue
+                    member_decl = self.__declarations[member]
+                    if isinstance(member_decl, declarations.class_types):
+                        del self.__declarations[member]
                 continue
             members_mapping[id(decl)] = members
         self.__members = members_mapping
@@ -565,7 +575,8 @@ class scanner_t(xml.sax.handler.ContentHandler):
 
     def __read_template_param(self, attrs):
         param = declarations.template_param_t()
-        param.name = attrs[XML_AN_NAME]
+        # we may have anonymous template parameters
+        param.name = attrs.get(XML_AN_NAME, '')
         param.decl_type = attrs.get(XML_AN_TYPE)
         if attrs.get(XML_AN_TEMPLATE_TEMPLATE, False):
             param.kind = declarations.template_param_kind_t.TEMPLATE
